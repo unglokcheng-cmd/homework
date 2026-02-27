@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>focusonurstudy - 找回你的專注力</title>
+    <style>
+        /* --- 全局變數與重置 --- */
+        :root {
+            --primary-gray: #7F8274;      /* 水泥灰 */
+            --bg-beige: #F5F5DC;          /* 米白 */
+            --text-dark: #333333;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(127, 130, 116, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* --- 導航欄 --- */
+        header {
+            background-color: var(--white);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-gray);
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            font-weight: 500;
+            color: var(--primary-gray);
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--text-dark);
+        }
+
+        .btn-start {
+            background-color: var(--primary-gray);
+            color: var(--white);
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-start:hover {
+            background-color: #5c5e54;
+            color: var(--white);
+        }
+
+        /* --- Hero 區域 --- */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, var(--bg-beige) 0%, #e8e8d0 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            color: var(--primary-gray);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: #555;
+            font-weight: 300;
+        }
+
+        /* --- 通用區塊樣式 --- */
+        section {
+            padding: 60px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-gray);
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background-color: var(--primary-gray);
+            margin: 10px auto 0;
+        }
+
+        /* --- 問題描述區 --- */
+        .problem-section {
+            background-color: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            padding: 50px 30px;
+        }
+
+        .problem-text {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #555;
+        }
+
+        .highlight {
+            color: var(--primary-gray);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-gray);
+        }
+
+        /* --- 功能介紹 (卡片) --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+            border-top: 5px solid var(--primary-gray);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-gray);
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* --- 使用流程 --- */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .step-item {
+            flex: 1;
+            min-width: 250px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .step-number {
+            font-size: 4rem;
+            font-weight: bold;
+            color: rgba(127, 130, 116, 0.15);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .step-item h4 {
+            color: var(--primary-gray);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* --- 團隊介紹 --- */
+        .team-section {
+            text-align: center;
+            padding-bottom: 80px;
+        }
+
+        .team-members {
+            font-size: 1.2rem;
+            color: var(--primary-gray);
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        /* --- RWD 手機版調整 --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            
+            nav ul { display: none; } /* 手機版隱藏選單項目，只留按鈕 */
+            header { justify-content: space-between; }
+            
+            .steps-container { flex-direction: column; }
+            
+            .problem-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 導航欄 -->
+    <header>
+        <div class="logo">focusonurstudy</div>
+        <nav>
+            <ul>
+                <li><a href="#problem">痛點</a></li>
+                <li><a href="#features">功能</a></li>
+                <li><a href="#steps">流程</a></li>
+                <li><a href="focus.html" class="btn-start">開始專注</a></li>
+            </ul>
+        </nav>
+        <!-- 手機版若選單隱藏，可保留此按鈕或透過 JS 做漢堡選單，此處簡化處理 -->
+        <a href="focus.html" class="btn-start" style="display: none;">開始</a> 
+        <!-- 上面這行在 CSS media query 中可以調整顯示，這裡為了簡潔先隱藏，主要靠 nav 裡的按鈕 -->
+        <style>@media(max-width: 768px){ header .btn-start { display: block !important; } header nav { display: none; } }</style>
+    </header>
+
+    <!-- Hero 區域 -->
+    <section class="hero">
+        <h1>focusonurstudy</h1>
+        <p>快到獎勵時間了！</p>
+    </section>
+
+    <!-- 問題描述區 -->
+    <section id="problem">
+        <div class="problem-section">
+            <h2 class="section-title">你是否也這樣？</h2>
+            <p class="problem-text">
+                寫作業時一直分心，因為<span class="highlight">手機消息一直彈</span>，忍不住想看。<br><br>
+                即使把手機放在一個伸手拿不到的地方（例如廚房或爸媽的房間），<br>
+                就算身邊沒有手機，也會有另外一些東西吸引你，或者不知不覺就放空了...
+            </p>
+        </div>
+    </section>
+
+    <!-- 功能介紹 -->
+    <section id="features">
+        <h2 class="section-title">核心功能</h2>
+        <div class="features-grid">
+            <!-- 功能 1 -->
+            <div class="feature-card">
+                <span class="feature-icon">🔔</span>
+                <h3>狀態提醒模板</h3>
+                <p>檢測到發呆、走神時及時提醒，快速拉回學習狀態，不讓時間悄悄溜走。</p>
+            </div>
+            <!-- 功能 2 -->
+            <div class="feature-card">
+                <span class="feature-icon">🛡️</span>
+                <h3>干擾識別功能</h3>
+                <p>自動攔截手機通知與彈窗，杜絕消息提醒引發的分心，打造純淨學習環境。</p>
+            </div>
+            <!-- 功能 3 -->
+            <div class="feature-card">
+                <span class="feature-icon">🏆</span>
+                <h3>專注達標檢測獎勵</h3>
+                <p>檢測連續專注時長，達到用戶設定時間就發放休息權限，讓努力看得見。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 使用流程 -->
+    <section id="steps">
+        <h2 class="section-title">如何使用</h2>
+        <div class="steps-container">
+            <div class="step-item">
+                <span class="step-number">01</span>
+                <h4>開啟隔離方案</h4>
+                <p>啟動干擾識別功能，屏蔽外界噪音與通知。</p>
+            </div>
+            <div class="step-item">
+                <span class="step-number">02</span>
+                <h4>設定並開始</h4>
+                <p>設定專注重點與時長，按下開始鍵進入心流。</p>
+            </div>
+            <div class="step-item">
+                <span class="step-number">03</span>
+                <h4>提醒與獎勵</h4>
+                <p>走神時接收溫柔提醒，達標後解鎖專屬休息獎勵。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 團隊介紹 -->
+    <section class="team-section">
+        <h2 class="section-title">關於我們</h2>
+        <div class="team-members">
+            Made by Charlie & Vernice
+        </div>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #888;">© 2024 focusonurstudy Project</p>
+    </section>
+
+</body>
+</html>
