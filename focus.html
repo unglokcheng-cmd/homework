@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人化設定 - focusonurstudy</title>
+    <style>
+        :root {
+            --primary-gray: #7F8274;
+            --bg-beige: #F5F5DC;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --shadow: 0 4px 15px rgba(127, 130, 116, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background-color: var(--white);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary-gray); }
+        .back-link { color: var(--primary-gray); text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-gray);
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--primary-gray);
+            font-size: 1.1rem;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+            background-color: #fafafa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-gray);
+            background-color: #fff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-gray);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .range-value {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-gray);
+            margin-top: 10px;
+        }
+
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+        .radio-option {
+            position: relative;
+        }
+        .radio-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .radio-card {
+            display: block;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .radio-option input:checked + .radio-card {
+            border-color: var(--primary-gray);
+            background-color: rgba(127, 130, 116, 0.1);
+            font-weight: bold;
+        }
+        .radio-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .platform-option {
+            position: relative;
+        }
+        .platform-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .platform-card {
+            display: block;
+            padding: 12px 8px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        .platform-option input:checked + .platform-card {
+            border-color: var(--primary-gray);
+            background-color: rgba(127, 130, 116, 0.15);
+            font-weight: bold;
+        }
+        .platform-icon { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+        .platform-name { font-size: 0.85rem; color: #666; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-gray);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        .submit-btn:hover {
+            background-color: #5c5e54;
+        }
+
+        @media (max-width: 600px) {
+            .form-card { padding: 25px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-link">← 返回主頁</a>
+        <div class="logo">focusonurstudy 設定</div>
+    </header>
+
+    <div class="container">
+        <div class="form-card">
+            <h1>⚙️ 個人化專注設定</h1>
+            
+            <form id="settingsForm">
+                
+                <!-- 1. 任務設定 -->
+                <div class="form-group">
+                    <label for="taskName">🎯 這次專注要做什麼？</label>
+                    <span class="help-text">明確的目標能提升專注效率</span>
+                    <input type="text" id="taskName" placeholder="例如：數學作業、背英文單字..." required>
+                </div>
+
+                <!-- 2. 時間設定 (已改為最小 1 分鐘) -->
+                <div class="form-group">
+                    <label for="duration">⏱️ 設定專注時長</label>
+                    <input type="range" id="duration" min="1" max="180" step="1" value="25">
+                    <div class="range-value"><span id="durationDisplay">25 分鐘</span></div>
+                </div>
+
+                <!-- 3. 消息攔截平臺選擇 -->
+                <div class="form-group">
+                    <label>📱 攔截哪些平臺的消息？</label>
+                    <span class="help-text">選擇後，專注期間會模擬攔截這些平臺的通知</span>
+                    <div class="platform-grid">
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Instagram">
+                            <span class="platform-card">
+                                <span class="platform-icon">📸</span>
+                                <span class="platform-name">Instagram</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Facebook">
+                            <span class="platform-card">
+                                <span class="platform-icon">📘</span>
+                                <span class="platform-name">Facebook</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="WhatsApp">
+                            <span class="platform-card">
+                                <span class="platform-icon">💬</span>
+                                <span class="platform-name">WhatsApp</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="LINE">
+                            <span class="platform-card">
+                                <span class="platform-icon">🟢</span>
+                                <span class="platform-name">LINE</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Messenger">
+                            <span class="platform-card">
+                                <span class="platform-icon">📨</span>
+                                <span class="platform-name">Messenger</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="TikTok">
+                            <span class="platform-card">
+                                <span class="platform-icon">🎵</span>
+                                <span class="platform-name">TikTok</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="YouTube">
+                            <span class="platform-card">
+                                <span class="platform-icon">▶️</span>
+                                <span class="platform-name">YouTube</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Email">
+                            <span class="platform-card">
+                                <span class="platform-icon">📧</span>
+                                <span class="platform-name">Email</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Twitter">
+                            <span class="platform-card">
+                                <span class="platform-icon">🐦</span>
+                                <span class="platform-name">Twitter</span>
+                            </span>
+                        </label>
+                        <label class="platform-option">
+                            <input type="checkbox" name="platforms" value="Discord">
+                            <span class="platform-card">
+                                <span class="platform-icon">🎮</span>
+                                <span class="platform-name">Discord</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 4. 狀態提醒靈敏度 -->
+                <div class="form-group">
+                    <label>🔔 狀態提醒靈敏度</label>
+                    <div class="radio-grid">
+                        <label class="radio-option">
+                            <input type="radio" name="sensitivity" value="low" checked>
+                            <span class="radio-card">
+                                <span class="radio-icon">🐢</span>
+                                寬鬆模式
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="sensitivity" value="medium">
+                            <span class="radio-card">
+                                <span class="radio-icon">🐇</span>
+                                標準模式
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="sensitivity" value="high">
+                            <span class="radio-card">
+                                <span class="radio-icon">🦅</span>
+                                嚴格模式
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 5. 鏡頭監測開關 -->
+                <div class="form-group">
+                    <label>📷 啟用鏡頭專注監測</label>
+                    <span class="help-text">開啟後將使用攝像頭檢測是否離開座位</span>
+                    <div class="radio-grid">
+                        <label class="radio-option">
+                            <input type="radio" name="camera" value="off" checked>
+                            <span class="radio-card">
+                                <span class="radio-icon">🔒</span>
+                                關閉
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="camera" value="on">
+                            <span class="radio-card">
+                                <span class="radio-icon">📷</span>
+                                開啟
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 6. 獎勵機制 -->
+                <div class="form-group">
+                    <label for="rewardType">🏆 達標後想要什麼獎勵？</label>
+                    <select id="rewardType">
+                        <option value="break_5">休息 5 分鐘</option>
+                        <option value="break_10">休息 10 分鐘</option>
+                        <option value="snack">吃點小零食 🍪</option>
+                        <option value="music">聽一首喜歡的歌 🎵</option>
+                        <option value="video">看一支短影片 📺</option>
+                        <option value="custom">自定義獎勵...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">儲存設定並開始專注</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 滑桿數值即時更新 ---
+        const durationSlider = document.getElementById('duration');
+        const durationDisplay = document.getElementById('durationDisplay');
+
+        function updateDurationDisplay() {
+            let val = parseInt(durationSlider.value);
+            if (val >= 60) {
+                let h = Math.floor(val / 60);
+                let m = val % 60;
+                durationDisplay.textContent = m > 0 ? `${h} 小時 ${m} 分` : `${h} 小時`;
+            } else {
+                durationDisplay.textContent = val + " 分鐘";
+            }
+        }
+
+        updateDurationDisplay();
+
+        durationSlider.addEventListener('input', function() {
+            updateDurationDisplay();
+        });
+
+        // --- 2. 表單提交處理 ---
+        const form = document.getElementById('settingsForm');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const selectedPlatforms = [];
+            document.querySelectorAll('input[name="platforms"]:checked').forEach((checkbox) => {
+                selectedPlatforms.push(checkbox.value);
+            });
+
+            const settings = {
+                task: document.getElementById('taskName').value,
+                duration: document.getElementById('duration').value,
+                platforms: selectedPlatforms,
+                sensitivity: document.querySelector('input[name="sensitivity"]:checked').value,
+                camera: document.querySelector('input[name="camera"]:checked').value,
+                reward: document.getElementById('rewardType').value
+            };
+
+            if(!settings.task) {
+                alert("請先輸入這次的專注任務喔！");
+                return;
+            }
+
+            localStorage.setItem('userSettings', JSON.stringify(settings));
+
+            const platformText = settings.platforms.length > 0 
+                ? settings.platforms.join(', ') 
+                : '無';
+
+            alert(`設定成功！\n任務：${settings.task}\n時長：${durationDisplay.textContent}\n攔截平臺：${platformText}\n準備好開始了嗎？`);
+
+            window.location.href = 'focus-dashboard.html'; 
+        });
+
+        // --- 3. 頁面載入時自動填入舊設定 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedSettings = localStorage.getItem('userSettings');
+            if(savedSettings) {
+                const data = JSON.parse(savedSettings);
+                document.getElementById('taskName').value = data.task || '';
+                document.getElementById('duration').value = data.duration || 25;
+                updateDurationDisplay();
+                
+                if (data.platforms && Array.isArray(data.platforms)) {
+                    document.querySelectorAll('input[name="platforms"]').forEach((checkbox) => {
+                        checkbox.checked = data.platforms.includes(checkbox.value);
+                    });
+                }
+                
+                const radios = document.getElementsByName('sensitivity');
+                for(let radio of radios) {
+                    if(radio.value === data.sensitivity) radio.checked = true;
+                }
+                
+                const cameraRadios = document.getElementsByName('camera');
+                for(let radio of cameraRadios) {
+                    if(radio.value === data.camera) radio.checked = true;
+                }
+                
+                document.getElementById('rewardType').value = data.reward || 'break_5';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專注進行中 - focusonurstudy</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        :root {
+            --primary-gray: #7F8274;
+            --bg-beige: #F5F5DC;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --success-green: #88b04b;
+            --alert-red: #d9534f;
+            --warning-orange: #f0ad4e;
+            --shadow: 0 4px 15px rgba(127, 130, 116, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--white);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .task-display {
+            font-weight: bold;
+            color: var(--primary-gray);
+            font-size: 1.1rem;
+        }
+        .status-badge {
+            background: rgba(127, 130, 116, 0.1);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: var(--primary-gray);
+        }
+
+        .timer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .timer-circle {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 8px solid rgba(127, 130, 116, 0.2);
+            border-top-color: var(--primary-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-gray);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            background: var(--white);
+            z-index: 5;
+        }
+
+        .timer-circle.alert {
+            border-color: var(--alert-red);
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .timer-circle.success {
+            border-color: var(--success-green);
+            animation: celebrate 0.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        #video-preview {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            width: 160px;
+            height: 120px;
+            background: #000;
+            border-radius: 10px;
+            object-fit: cover;
+            transform: scaleX(-1);
+            border: 3px solid var(--primary-gray);
+            display: none;
+            z-index: 20;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        #video-preview.active { display: block; }
+        #video-preview.alert { 
+            border-color: var(--alert-red);
+            animation: shake 0.3s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: scaleX(-1) translateX(0); }
+            25% { transform: scaleX(-1) translateX(-5px); }
+            75% { transform: scaleX(-1) translateX(5px); }
+        }
+
+        .camera-status {
+            position: absolute;
+            bottom: 85px;
+            right: 35px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            z-index: 21;
+            display: none;
+        }
+        .camera-status.active { display: block; }
+        .camera-status.warning {
+            background: var(--alert-red);
+            animation: blink 0.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .timer-label {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .timer-label.warning {
+            color: var(--alert-red);
+            font-weight: bold;
+        }
+        .timer-label.success {
+            color: var(--success-green);
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .controls {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-pause {
+            background-color: #ddd;
+            color: #555;
+        }
+        .btn-pause:hover { background-color: #ccc; }
+
+        .btn-stop {
+            background-color: var(--alert-red);
+            color: white;
+        }
+        .btn-stop:hover { background-color: #c9302c; }
+
+        .btn-mute {
+            background-color: var(--primary-gray);
+            color: white;
+        }
+        .btn-mute:hover { background-color: #5c5e54; }
+
+        .notification-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--white);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            border-left: 5px solid var(--primary-gray);
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 100;
+            max-width: 320px;
+        }
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        .notification-toast.warning {
+            border-left-color: var(--alert-red);
+        }
+        .notification-toast.blocked {
+            border-left-color: var(--success-green);
+        }
+        .toast-title { font-weight: bold; color: var(--primary-gray); margin-bottom: 5px; }
+        .notification-toast.warning .toast-title { color: var(--alert-red); }
+        .notification-toast.blocked .toast-title { color: var(--success-green); }
+        .toast-msg { font-size: 0.9rem; color: #666; }
+        .toast-platform { 
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(127, 130, 116, 0.1);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        .modal {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal h2 { color: var(--primary-gray); margin-bottom: 15px; }
+        .modal.warning h2 { color: var(--alert-red); }
+        .modal.success h2 { color: var(--success-green); }
+        .modal p { margin-bottom: 25px; color: #555; line-height: 1.6; }
+        .modal-btn {
+            background: var(--primary-gray);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .modal-btn:hover { background: #5c5e54; }
+
+        .reward-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .confetti { position: absolute; width: 10px; height: 10px; background: #f00; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(245, 245, 220, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(127, 130, 116, 0.2);
+            border-top-color: var(--primary-gray);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 20px;
+            color: var(--primary-gray);
+            font-size: 1.1rem;
+        }
+
+        .alarm-progress {
+            position: absolute;
+            bottom: 60px;
+            right: 30px;
+            width: 160px;
+            height: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            display: none;
+            z-index: 22;
+        }
+        .alarm-progress.active { display: block; }
+        .alarm-progress-bar {
+            height: 100%;
+            background: var(--alert-red);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* 攔截統計 */
+        .block-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(127, 130, 116, 0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--primary-gray);
+        }
+        .block-counter span {
+            font-weight: bold;
+            color: var(--success-green);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">載入專注系統中...</div>
+    </div>
+
+    <header>
+        <div class="task-display" id="displayTask">載入任務中...</div>
+        <div class="status-badge" id="statusBadge">📱 消息攔截已啟動</div>
+    </header>
+
+    <div class="timer-container">
+        <div class="timer-circle" id="timerDisplay">25:00</div>
+        <div class="timer-label" id="timerLabel">保持專注，你做得很好！</div>
+        <div class="block-counter" id="blockCounter">已攔截 <span>0</span> 條消息</div>
+        <video id="video-preview" autoplay muted playsinline></video>
+        <div class="camera-status" id="cameraStatus">📷 監測中</div>
+        <div class="alarm-progress" id="alarmProgress">
+            <div class="alarm-progress-bar" id="alarmProgressBar"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-pause" id="pauseBtn" onclick="togglePause()">暫停</button>
+        <button class="btn btn-mute" id="muteBtn" onclick="toggleMute()">🔊 聲音開啟</button>
+        <button class="btn btn-stop" onclick="stopFocus()">放棄任務</button>
+    </div>
+
+    <div class="notification-toast" id="toast">
+        <div class="toast-title">📱 消息已攔截</div>
+        <div class="toast-msg" id="toastMsg">Instagram 有新消息...已屏蔽。</div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script>
+        // --- 全局變數 ---
+        let settings = {};
+        let timeLeft = 0;
+        let timerInterval = null;
+        let isPaused = false;
+        let totalSeconds = 0;
+        let isMuted = false;
+        let audioContext = null;
+        let blockCount = 0;
+        
+        // 鏡頭監測變數
+        let videoStream = null;
+        let faceDetectionInterval = null;
+        let noFaceTimer = null;
+        let noMoveTimer = null;
+        let isFaceDetected = false;
+        let faceApiLoaded = false;
+        let lastFacePosition = null;
+        let alarmTimeout = null;
+        
+        // 警報設定
+        const NO_FACE_LIMIT = 5000;
+        const NO_MOVE_LIMIT = 10000;
+        const ALARM_DURATION = 3000;
+
+        // 平臺消息模板
+        const messageTemplates = {
+            'Instagram': ['有新消息', '點了讚你的照片', '回覆了你的限時動態', '發送了私信'],
+            'Facebook': ['有新通知', '留言了你的貼文', '標記了你', '發送了訊息'],
+            'WhatsApp': ['有新消息', '發送了語音訊息', '分享了圖片', '邀請加入群組'],
+            'LINE': ['有新消息', '發送了貼圖', '分享了連結', '邀請加入群組'],
+            'Messenger': ['有新消息', '回覆了你', '發送了照片', '標記了你'],
+            'TikTok': ['有新通知', '追蹤了你', '讚了你的影片', '評論了你的影片'],
+            'YouTube': ['有新訂閱者', '評論了你的影片', '推薦了新影片', '直播開始了'],
+            'Email': ['收到新郵件', '有重要郵件', '電子報更新', '會議邀請'],
+            'Twitter': ['有新推文', '轉推了你的推文', '回覆了你', '追蹤了你'],
+            'Discord': ['有新消息', '標記了你', '伺服器通知', '語音頻道邀請']
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            initAudioContext();
+            
+            const saved = localStorage.getItem('userSettings');
+            if (!saved) {
+                alert("尚未設定專注任務，將返回設定頁。");
+                window.location.href = 'focus.html';
+                return;
+            }
+            settings = JSON.parse(saved);
+            
+            document.getElementById('displayTask').textContent = `🎯 ${settings.task}`;
+            
+            totalSeconds = parseInt(settings.duration) * 60;
+            timeLeft = totalSeconds;
+            updateTimerDisplay();
+
+            if (settings.camera === 'on') {
+                await initCamera();
+            } else {
+                hideLoading();
+            }
+
+            startMessageBlocking();
+            startTimer();
+        });
+
+        function initAudioContext() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (err) {
+                console.error('❌ 音頻上下文初始化失敗:', err);
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        async function initCamera() {
+            const video = document.getElementById('video-preview');
+            const status = document.getElementById('cameraStatus');
+            const badge = document.getElementById('statusBadge');
+            
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 320, height: 240, facingMode: 'user' } 
+                });
+                video.srcObject = videoStream;
+                video.classList.add('active');
+                status.classList.add('active');
+                badge.textContent = '📷 鏡頭監測中';
+                
+                await loadFaceApiModels();
+                startFaceDetection(video);
+                
+                console.log('✅ 鏡頭已啟動');
+                hideLoading();
+            } catch (err) {
+                console.error('❌ 鏡頭啟動失敗:', err);
+                showToast('⚠️ 鏡頭權限', '無法啟動鏡頭，將使用一般模式');
+                badge.textContent = '📱 消息攔截已啟動';
+                hideLoading();
+            }
+        }
+
+        async function loadFaceApiModels() {
+            const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+            try {
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
+                ]);
+                faceApiLoaded = true;
+                console.log('✅ 人臉模型載入完成');
+            } catch (err) {
+                console.error('❌ 模型載入失敗:', err);
+                showToast('⚠️ 模型載入', '人臉檢測模型載入失敗，將使用一般模式');
+            }
+        }
+
+        function startFaceDetection(video) {
+            if (!faceApiLoaded) return;
+            
+            faceDetectionInterval = setInterval(async () => {
+                if (isPaused || !videoStream) return;
+                
+                try {
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+                    
+                    if (detections.length > 0) {
+                        const currentFace = detections[0].box;
+                        
+                        if (lastFacePosition) {
+                            const moveDistance = Math.sqrt(
+                                Math.pow(currentFace.x - lastFacePosition.x, 2) + 
+                                Math.pow(currentFace.y - lastFacePosition.y, 2)
+                            );
+                            
+                            if (moveDistance > 5) {
+                                resetNoMoveTimer();
+                            } else {
+                                if (!noMoveTimer) {
+                                    startNoMoveTimer();
+                                }
+                            }
+                        }
+                        lastFacePosition = currentFace;
+                        
+                        isFaceDetected = true;
+                        clearTimeout(noFaceTimer);
+                        resetAlarm();
+                        
+                        video.classList.remove('alert');
+                        document.getElementById('timerLabel').textContent = '保持專注，你做得很好！';
+                        document.getElementById('timerLabel').classList.remove('warning');
+                        document.getElementById('cameraStatus').classList.remove('warning');
+                        document.getElementById('alarmProgress').classList.remove('active');
+                        
+                    } else {
+                        if (isFaceDetected) {
+                            isFaceDetected = false;
+                            lastFacePosition = null;
+                            video.classList.add('alert');
+                            document.getElementById('timerLabel').textContent = '⚠️ 偵測不到人臉';
+                            document.getElementById('timerLabel').classList.add('warning');
+                            document.getElementById('cameraStatus').classList.add('warning');
+                            
+                            noFaceTimer = setTimeout(() => {
+                                if (!isPaused && !isFaceDetected) {
+                                    triggerAlarm('離開鏡頭', '偵測到你離開鏡頭超過 5 秒，請回來繼續專注！');
+                                }
+                            }, NO_FACE_LIMIT);
+                        }
+                    }
+                } catch (err) {
+                    console.error('檢測錯誤:', err);
+                }
+            }, 1000);
+        }
+
+        function startNoMoveTimer() {
+            const startTime = Date.now();
+            const progressBar = document.getElementById('alarmProgressBar');
+            const progressContainer = document.getElementById('alarmProgress');
+            
+            progressContainer.classList.add('active');
+            
+            noMoveTimer = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = (elapsed / NO_MOVE_LIMIT) * 100;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                
+                if (elapsed >= NO_MOVE_LIMIT) {
+                    clearInterval(noMoveTimer);
+                    noMoveTimer = null;
+                    triggerAlarm('長時間不動', '偵測到你超過 10 秒沒有移動，請保持清醒！');
+                }
+            }, 100);
+        }
+
+        function resetNoMoveTimer() {
+            if (noMoveTimer) {
+                clearInterval(noMoveTimer);
+                noMoveTimer = null;
+            }
+            document.getElementById('alarmProgress').classList.remove('active');
+            document.getElementById('alarmProgressBar').style.width = '0%';
+        }
+
+        function triggerAlarm(type, message) {
+            if (isPaused) return;
+            
+            document.getElementById('timerDisplay').classList.add('alert');
+            document.getElementById('video-preview').classList.add('alert');
+            document.getElementById('timerLabel').textContent = `🚨 ${type}！`;
+            
+            playAlarmSound();
+            showToast('🚨 警報', message, true);
+            
+            alarmTimeout = setTimeout(() => {
+                resetAlarm();
+            }, ALARM_DURATION);
+        }
+
+        function playAlarmSound() {
+            if (isMuted || !audioContext) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(1100, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.2);
+                oscillator.frequency.setValueAtTime(1100, audioContext.currentTime + 0.3);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 3);
+            } catch (err) {
+                console.error('❌ 警報聲播放失敗:', err);
+            }
+        }
+
+        function playCelebrationSound() {
+            if (isMuted || !audioContext) return;
+            
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                const duration = 0.15;
+                
+                notes.forEach((freq, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = freq;
+                    
+                    const startTime = audioContext.currentTime + (index * duration);
+                    gainNode.gain.setValueAtTime(0.3, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + duration);
+                });
+                
+                setTimeout(() => {
+                    const chordOscillator = audioContext.createOscillator();
+                    const chordGain = audioContext.createGain();
+                    
+                    chordOscillator.connect(chordGain);
+                    chordGain.connect(audioContext.destination);
+                    
+                    chordOscillator.type = 'triangle';
+                    chordOscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    chordOscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                    chordOscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+                    
+                    chordGain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    chordGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+                    
+                    chordOscillator.start(audioContext.currentTime);
+                    chordOscillator.stop(audioContext.currentTime + 1.5);
+                }, 600);
+                
+                console.log('🎉 歡呼聲播放中');
+            } catch (err) {
+                console.error('❌ 歡呼聲播放失敗:', err);
+            }
+        }
+
+        function resetAlarm() {
+            document.getElementById('timerDisplay').classList.remove('alert');
+            document.getElementById('video-preview').classList.remove('alert');
+            document.getElementById('timerLabel').textContent = '保持專注，你做得很好！';
+            document.getElementById('timerLabel').classList.remove('warning');
+            document.getElementById('cameraStatus').classList.remove('warning');
+            document.getElementById('alarmProgress').classList.remove('active');
+            document.getElementById('alarmProgressBar').style.width = '0%';
+            
+            if (alarmTimeout) {
+                clearTimeout(alarmTimeout);
+                alarmTimeout = null;
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('muteBtn');
+            btn.textContent = isMuted ? '🔇 聲音關閉' : '🔊 聲音開啟';
+            btn.style.backgroundColor = isMuted ? '#ddd' : 'var(--primary-gray)';
+            
+            if (isMuted) {
+                showToast('🔇 已靜音', '警報聲已關閉，但仍會顯示視覺提醒');
+            } else {
+                showToast('🔊 已開啟', '警報聲已恢復');
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!isPaused && timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else if (timeLeft === 0) {
+                    finishFocus();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+            document.title = `${m}:${s} - 專注中`;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pauseBtn');
+            btn.textContent = isPaused ? "繼續" : "暫停";
+            btn.style.backgroundColor = isPaused ? "#ffeaa7" : "#ddd";
+            
+            if (isPaused) {
+                resetAlarm();
+                resetNoMoveTimer();
+                clearTimeout(noFaceTimer);
+                
+                showModal("暫停中", "休息一下沒關係，但別太久喔！準備好就按下方按鈕繼續。", "繼續專注", () => {
+                    closeModal();
+                    togglePause();
+                });
+            }
+        }
+
+        function stopFocus() {
+            clearInterval(timerInterval);
+            clearInterval(faceDetectionInterval);
+            if (noMoveTimer) clearInterval(noMoveTimer);
+            clearTimeout(noFaceTimer);
+            clearTimeout(alarmTimeout);
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if(confirm("確定要放棄這次的專注任務嗎？")) {
+                window.location.href = 'index.html';
+            } else {
+                if(isPaused) togglePause(); 
+            }
+        }
+
+        // --- 📱 消息攔截模擬功能 ---
+        function startMessageBlocking() {
+            const platforms = settings.platforms || [];
+            
+            if (platforms.length === 0) {
+                console.log('⚠️ 未選擇攔截平臺');
+                return;
+            }
+
+            const triggerBlock = () => {
+                if (!isPaused && timeLeft > 0) {
+                    // 隨機選擇一個平臺
+                    const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
+                    // 隨機選擇一個消息模板
+                    const messages = messageTemplates[randomPlatform] || ['有新消息'];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    
+                    // 增加攔截計數
+                    blockCount++;
+                    document.querySelector('#blockCounter span').textContent = blockCount;
+                    
+                    // 顯示攔截通知
+                    showToastBlocked(randomPlatform, randomMessage);
+                }
+                
+                // 下次觸發時間：20 秒 ~ 60 秒之間
+                setTimeout(triggerBlock, Math.random() * 40000 + 20000);
+            };
+            
+            // 5 秒後開始第一次攔截
+            setTimeout(triggerBlock, 5000);
+        }
+
+        function showToastBlocked(platform, message) {
+            const toast = document.getElementById('toast');
+            document.querySelector('.toast-title').textContent = '📱 消息已攔截';
+            document.getElementById('toastMsg').innerHTML = `
+                <strong>${platform}</strong> ${message}<br>
+                <span class="toast-platform">✅ 已屏蔽</span>
+            `;
+            
+            toast.classList.remove('warning');
+            toast.classList.add('blocked');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function showToast(title, msg, isWarning = false) {
+            const toast = document.getElementById('toast');
+            document.querySelector('.toast-title').textContent = title;
+            document.getElementById('toastMsg').textContent = msg;
+            
+            if (isWarning) {
+                toast.classList.add('warning');
+                toast.classList.remove('blocked');
+            } else {
+                toast.classList.remove('warning');
+                toast.classList.remove('blocked');
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function showModal(title, text, btnText, callback) {
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            content.innerHTML = `
+                <h2>${title}</h2>
+                <p style="white-space: pre-line;">${text}</p>
+                <button class="modal-btn">${btnText}</button>
+            `;
+            overlay.style.display = 'flex';
+            
+            content.querySelector('button').onclick = () => {
+                if (callback) callback();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function finishFocus() {
+            clearInterval(timerInterval);
+            clearInterval(faceDetectionInterval);
+            if (noMoveTimer) clearInterval(noMoveTimer);
+            clearTimeout(noFaceTimer);
+            clearTimeout(alarmTimeout);
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            
+            playCelebrationSound();
+            
+            document.getElementById('timerDisplay').classList.add('success');
+            document.getElementById('timerLabel').textContent = '🎉 恭喜達成目標！';
+            document.getElementById('timerLabel').classList.add('success');
+            
+            const rewardMap = {
+                'break_5': '休息 5 分鐘 ☕',
+                'break_10': '休息 10 分鐘 ☕',
+                'snack': '吃點小零食 🍪',
+                'music': '聽一首喜歡的歌 🎵',
+                'video': '看一支短影片 📺',
+                'custom': '專屬獎勵 🎁'
+            };
+            const rewardText = rewardMap[settings.reward] || '好好休息一下 ✨';
+
+            createConfetti();
+            
+            showModal("🎉 專注達標！", `你完成了 "${settings.task}"\n持續了 ${settings.duration} 分鐘！\n期間攔截了 <strong>${blockCount}</strong> 條消息！\n\n你的獎勵是：\n<strong>${rewardText}</strong>`, "返回首頁", () => {
+                window.location.href = 'index.html';
+            });
+        }
+
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
+            for (let i = 0; i < 100; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(conf);
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            if (noMoveTimer) clearInterval(noMoveTimer);
+            clearTimeout(noFaceTimer);
+            clearTimeout(alarmTimeout);
+        });
+
+        document.addEventListener('click', () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
